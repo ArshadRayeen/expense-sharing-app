@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Expense, ExpenseSplit, Settlement, SplitType } from '../../types';
-import { expenseOperations, settlementOperations } from '../../services/db';
+import { expenseOperations, settlementOperations, db } from '../../services/db';
 import { generateId, calculateSplitAmounts } from '../../utils/helpers';
 
 interface ExpenseState {
@@ -19,68 +19,32 @@ const initialState: ExpenseState = {
   error: null,
 };
 
+interface ExpenseSplit {
+  user_id: string;
+  amount: number;
+}
+
+interface AddExpensePayload {
+  amount: number;
+  description: string;
+  payer_id: string;
+  split_type: 'EQUAL' | 'EXACT' | 'PERCENT';
+  participants: ExpenseSplit[];
+}
+
 // Async thunks
 export const addExpense = createAsyncThunk(
-  'expense/addExpense',
-  async ({ 
-    amount, 
-    description, 
-    payerId, 
-    participants, 
-    splitType, 
-    exactAmounts, 
-    percentages, 
-    groupId 
-  }: {
-    amount: number;
-    description: string;
-    payerId: string;
-    participants: string[];
-    splitType: SplitType;
-    exactAmounts?: Record<string, string>;
-    percentages?: Record<string, string>;
-    groupId?: string;
-  }, { rejectWithValue }) => {
+  'expenses/add',
+  async (payload: AddExpensePayload, { rejectWithValue }) => {
     try {
-      const expenseId = generateId();
-      const date = new Date().toISOString();
-      
-      const expense: Expense = {
-        id: expenseId,
-        groupId: groupId || '',
-        amount,
-        description,
-        payerId,
-        date,
-        splitType,
+      const expense: Omit<Expense, 'id'> = {
+        ...payload,
+        date: Date.now(), // Use timestamp for consistency
       };
-      
-      // Calculate split amounts based on the split type
-      const splitAmounts = calculateSplitAmounts(
-        amount,
-        participants,
-        payerId,
-        splitType,
-        exactAmounts,
-        percentages
-      );
-      
-      // Create expense splits
-      const splits: ExpenseSplit[] = [];
-      for (const [userId, amountOwed] of Object.entries(splitAmounts)) {
-        splits.push({
-          expenseId,
-          userId,
-          amountOwed,
-        });
-      }
-      
-      // Save to database
-      await expenseOperations.addExpense(expense, splits);
-      
-      return { expense, splits };
+      const newExpense = await expenseOperations.createExpense(expense);
+      return newExpense;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error instanceof Error ? error.message : 'Failed to add expense');
     }
   }
 );
@@ -89,18 +53,10 @@ export const fetchExpensesForUser = createAsyncThunk(
   'expense/fetchExpensesForUser',
   async (userId: string, { rejectWithValue }) => {
     try {
-      const expenses = await expenseOperations.getExpensesForUser(userId);
-      
-      // Fetch splits for each expense
-      const allSplits: ExpenseSplit[] = [];
-      for (const expense of expenses) {
-        const splits = await expenseOperations.getExpenseSplitsForExpense(expense.id);
-        allSplits.push(...splits);
-      }
-      
-      return { expenses, splits: allSplits };
+      const expenses = await expenseOperations.getExpensesByUserId(userId);
+      return { expenses, splits: [] }; // We'll implement splits later
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error instanceof Error ? error.message : 'An error occurred');
     }
   }
 );
@@ -108,34 +64,31 @@ export const fetchExpensesForUser = createAsyncThunk(
 export const addSettlement = createAsyncThunk(
   'expense/addSettlement',
   async ({ 
-    payerId, 
-    payeeId, 
-    amount, 
+    payer_id,
+    payee_id,
+    amount,
     note 
   }: {
-    payerId: string;
-    payeeId: string;
+    payer_id: string;
+    payee_id: string;
     amount: number;
     note?: string;
   }, { rejectWithValue }) => {
     try {
-      const settlementId = generateId();
-      const date = new Date().toISOString();
-      
       const settlement: Settlement = {
-        id: settlementId,
-        payerId,
-        payeeId,
+        id: Date.now().toString(),
+        payer_id,
+        payee_id,
         amount,
-        date,
-        note: note || '',
+        date: new Date().toISOString(),
       };
       
-      await settlementOperations.addSettlement(settlement);
+      // We need to implement this in the database service
+      await db.createSettlement(settlement);
       
       return settlement;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error instanceof Error ? error.message : 'An error occurred');
     }
   }
 );
@@ -144,11 +97,30 @@ export const fetchSettlementsForUser = createAsyncThunk(
   'expense/fetchSettlementsForUser',
   async (userId: string, { rejectWithValue }) => {
     try {
-      const settlements = await settlementOperations.getSettlementsForUser(userId);
+      const settlements = await settlementOperations.getSettlementsByUserId(userId);
       return settlements;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error instanceof Error ? error.message : 'An error occurred');
     }
+  }
+);
+
+export const createExpense = createAsyncThunk(
+  'expenses/create',
+  async (expense: Omit<Expense, 'id' | 'date'>) => {
+    const newExpense = await db.createExpense({
+      ...expense,
+      date: new Date().toISOString(),
+    });
+    return newExpense;
+  }
+);
+
+export const fetchExpenses = createAsyncThunk(
+  'expenses/fetch',
+  async (userId: string) => {
+    const expenses = await db.getExpensesByUserId(userId);
+    return expenses;
   }
 );
 
@@ -176,8 +148,7 @@ const expenseSlice = createSlice({
       })
       .addCase(addExpense.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.expenses.push(action.payload.expense);
-        state.expenseSplits.push(...action.payload.splits);
+        state.expenses.push(action.payload);
       })
       .addCase(addExpense.rejected, (state, action) => {
         state.isLoading = false;
@@ -225,6 +196,24 @@ const expenseSlice = createSlice({
       .addCase(fetchSettlementsForUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
+      })
+      
+      // Create expense
+      .addCase(createExpense.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(createExpense.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.expenses.push(action.payload);
+      })
+      .addCase(createExpense.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message || 'Failed to create expense';
+      })
+      
+      // Fetch expenses
+      .addCase(fetchExpenses.fulfilled, (state, action) => {
+        state.expenses = action.payload;
       });
   },
 });

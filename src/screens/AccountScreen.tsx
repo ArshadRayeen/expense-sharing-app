@@ -3,6 +3,7 @@ import { StyleSheet, View, ScrollView } from 'react-native';
 import { Text, Button, TextInput, Divider } from 'react-native-paper';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { router } from 'expo-router';
+import { logout, updateUser } from '../redux/slices/authSlice';
 
 const AccountScreen = () => {
   const dispatch = useAppDispatch();
@@ -13,13 +14,13 @@ const AccountScreen = () => {
   const [isEditing, setIsEditing] = useState(false);
 
   const handleLogout = () => {
-    dispatch(clearUser());
-    router.replace('/auth/login');
+    dispatch(logout());
+    router.replace('/(auth)/landing');
   };
 
   const handleSaveProfile = () => {
     if (user) {
-      dispatch(setUser({ ...user, name, email }));
+      dispatch(updateUser({ name, email }));
       setIsEditing(false);
     }
   };

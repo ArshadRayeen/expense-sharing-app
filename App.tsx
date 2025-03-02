@@ -1,20 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import { Provider } from 'react-redux';
-import { NavigationContainer } from '@react-navigation/native';
-import { Provider as PaperProvider, DefaultTheme } from 'react-native-paper';
-
-// Import Redux store
+import { PaperProvider, DefaultTheme } from 'react-native-paper';
 import { store } from './src/redux/store';
+import { initDb } from './src/services/db';
+import { SplashScreen } from 'expo-router';
+import { Slot } from 'expo-router';
 
-// Import database initialization
-import { initDatabase } from './src/services/db';
+// Keep the splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync();
 
-// Import navigation
-import AppNavigator from './src/navigation/AppNavigator';
-
-// Define theme
 const theme = {
   ...DefaultTheme,
   colors: {
@@ -24,20 +19,21 @@ const theme = {
   },
 };
 
-export default function App() {
+function AppContent() {
   const [isDbReady, setIsDbReady] = useState(false);
   const [dbError, setDbError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Initialize the database when the app starts
-    initDatabase()
+    initDb()
       .then(() => {
         console.log('Database initialized successfully');
         setIsDbReady(true);
+        SplashScreen.hideAsync();
       })
-      .catch(error => {
+      .catch((error: Error) => {
         console.error('Failed to initialize database:', error);
         setDbError(error.message);
+        SplashScreen.hideAsync();
       });
   }, []);
 
@@ -60,13 +56,14 @@ export default function App() {
     );
   }
 
+  return <Slot />;
+}
+
+export default function App() {
   return (
     <Provider store={store}>
       <PaperProvider theme={theme}>
-        <NavigationContainer>
-          <AppNavigator />
-        </NavigationContainer>
-        <StatusBar style="auto" />
+        <AppContent />
       </PaperProvider>
     </Provider>
   );

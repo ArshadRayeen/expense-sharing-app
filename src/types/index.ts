@@ -1,14 +1,19 @@
 // User types
 export interface User {
   id: string;
-  email: string;
   name: string;
+  email: string;
+  password_hash: string;
+  created_at: number;
 }
 
 // Group types
 export interface Group {
   id: string;
   name: string;
+  members: string[];
+  created_by: string;
+  created_at: number;
 }
 
 export interface GroupMember {
@@ -25,25 +30,26 @@ export enum SplitType {
 
 export interface Expense {
   id: string;
-  groupId: string;
+  group_id: string;
   amount: number;
   description: string;
-  payerId: string;
-  date: string;
-  splitType?: SplitType;
+  payer_id: string;
+  date: string | number; // Can be ISO string or timestamp
+  split_type: 'EQUAL' | 'EXACT' | 'PERCENT';
 }
 
 export interface ExpenseSplit {
-  expenseId: string;
-  userId: string;
-  amountOwed: number;
+  expense_id: string;
+  user_id: string;
+  amount: number;
+  percentage?: number;
 }
 
 // Settlement types
 export interface Settlement {
   id: string;
-  payerId: string;
-  payeeId: string;
+  payer_id: string;
+  payee_id: string;
   amount: number;
   date: string;
 }
@@ -77,4 +83,16 @@ export interface AuthFormData {
   email: string;
   password: string;
   name?: string;
+}
+
+export interface Friend {
+  id: string;
+  name: string;
+  email: string;
+  balance: number;
+}
+
+export interface AddFriendPayload {
+  name: string;
+  email: string;
 } 

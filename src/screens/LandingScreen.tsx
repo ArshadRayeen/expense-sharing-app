@@ -1,32 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
-import { Button, Text, Snackbar, TextInput } from 'react-native-paper';
+import { Button, Text, Snackbar, TextInput, HelperText } from 'react-native-paper';
 import { router } from 'expo-router';
 import { validateEmail, validatePassword } from '../utils/validation';
 import { userOperations, initDb } from '../services/db';
 import { User } from '../types/user';
-import { useDispatch } from 'react-redux';
-import { setUser } from '../redux/slices/authSlice';
+import { useAppDispatch } from '../redux/hooks';
+import { loginUser, registerUser } from '../redux/slices/authSlice';
 
 interface FormData {
+  name: string;
   email: string;
   password: string;
-  name?: string;
 }
 
 interface FormErrors {
+  name?: string;
   email?: string;
   password?: string;
-  name?: string;
 }
 
 const LandingScreen = () => {
-  const dispatch = useDispatch();
-  const [isSignUp, setIsSignUp] = useState(true);
+  const dispatch = useAppDispatch();
+  const [isSignUp, setIsSignUp] = useState(false);
   const [formData, setFormData] = useState<FormData>({
+    name: '',
     email: '',
     password: '',
-    name: '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [snackbarVisible, setSnackbarVisible] = useState(false);
@@ -35,13 +35,20 @@ const LandingScreen = () => {
   const [isDatabaseReady, setIsDatabaseReady] = useState(false);
 
   useEffect(() => {
-    // Initialize database
-    initDb()
-      .then(() => setIsDatabaseReady(true))
-      .catch((error: Error) => {
+    const setupDatabase = async () => {
+      try {
+        setIsLoading(true);
+        await initDb();
+        setIsDatabaseReady(true);
+      } catch (error) {
         console.error('Database initialization error:', error);
         showSnackbar('Failed to initialize database');
-      });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    setupDatabase();
   }, []);
 
   const showSnackbar = (message: string) => {
@@ -52,50 +59,20 @@ const LandingScreen = () => {
   const validateForm = () => {
     const newErrors: FormErrors = {};
 
+    if (isSignUp && !formData.name.trim()) {
+      newErrors.name = 'Name is required';
+    }
+
     if (!validateEmail(formData.email)) {
       newErrors.email = 'Please enter a valid email';
     }
 
-    if (!validatePassword(formData.password)) {
-      newErrors.password = 'Password must contain at least 8 characters, including uppercase, lowercase, number and special character';
-    }
-
-    if (isSignUp && (!formData.name || formData.name.trim().length < 2)) {
-      newErrors.name = 'Name must be at least 2 characters';
+    if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSignUp = async () => {
-    try {
-      const existingUser = await userOperations.getUserByEmail(formData.email);
-      if (existingUser) {
-        throw new Error('Email already exists');
-      }
-
-      await userOperations.addUser({
-        id: Date.now().toString(),
-        name: formData.name || '',
-        email: formData.email,
-        password_hash: formData.password // In real app, use proper password hashing
-      });
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  const handleLogin = async (): Promise<User> => {
-    try {
-      const user = await userOperations.getUserByEmail(formData.email);
-      if (!user || user.password_hash !== formData.password) {
-        throw new Error('Invalid email or password');
-      }
-      return user;
-    } catch (error) {
-      throw error;
-    }
   };
 
   const handleSubmit = async () => {
@@ -112,21 +89,22 @@ const LandingScreen = () => {
     setIsLoading(true);
     try {
       if (isSignUp) {
-        await handleSignUp();
-        showSnackbar('Account created successfully!');
-        const newUser = await userOperations.getUserByEmail(formData.email);
-        if (newUser) {
-          dispatch(setUser(newUser));
-        }
+        await dispatch(registerUser({
+          name: formData.name.trim(),
+          email: formData.email.trim().toLowerCase(),
+          password: formData.password
+        })).unwrap();
       } else {
-        const user = await handleLogin();
-        dispatch(setUser(user));
-        showSnackbar('Login successful!');
+        await dispatch(loginUser({
+          email: formData.email.trim().toLowerCase(),
+          password: formData.password
+        })).unwrap();
       }
-      
       router.replace('/(tabs)');
     } catch (error) {
-      showSnackbar(error instanceof Error ? error.message : 'An error occurred');
+      setErrors({
+        email: error instanceof Error ? error.message : 'Authentication failed'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -154,41 +132,50 @@ const LandingScreen = () => {
         </View>
         
         <View style={styles.formContainer}>
-          <Text style={styles.title}>{isSignUp ? 'Sign Up' : 'Log In'}</Text>
+          <Text style={styles.title}>{isSignUp ? 'Create Account' : 'Welcome Back'}</Text>
           
           {isSignUp && (
             <>
               <TextInput
                 label="Name"
                 value={formData.name}
-                onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
+                onChangeText={(text) => {
+                  setFormData({ ...formData, name: text });
+                  setErrors({ ...errors, name: '' });
+                }}
                 style={styles.input}
                 error={!!errors.name}
               />
-              {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+              {errors.name && <HelperText type="error">{errors.name}</HelperText>}
             </>
           )}
 
           <TextInput
             label="Email"
             value={formData.email}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, email: text }))}
+            onChangeText={(text) => {
+              setFormData({ ...formData, email: text });
+              setErrors({ ...errors, email: '' });
+            }}
             keyboardType="email-address"
             autoCapitalize="none"
             style={styles.input}
             error={!!errors.email}
           />
-          {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+          {errors.email && <HelperText type="error">{errors.email}</HelperText>}
 
           <TextInput
             label="Password"
             value={formData.password}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, password: text }))}
+            onChangeText={(text) => {
+              setFormData({ ...formData, password: text });
+              setErrors({ ...errors, password: '' });
+            }}
             secureTextEntry
             style={styles.input}
             error={!!errors.password}
           />
-          {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+          {errors.password && <HelperText type="error">{errors.password}</HelperText>}
           
           <Button 
             mode="contained" 
@@ -197,15 +184,19 @@ const LandingScreen = () => {
             loading={isLoading}
             disabled={isLoading}
           >
-            {isSignUp ? 'Sign Up' : 'Log In'}
+            {isSignUp ? 'Sign Up' : 'Login'}
           </Button>
           
           <Button 
             mode="text" 
-            onPress={() => setIsSignUp(!isSignUp)} 
+            onPress={() => {
+              setIsSignUp(!isSignUp);
+              setFormData({ name: '', email: '', password: '' });
+              setErrors({});
+            }}
             style={styles.switchButton}
           >
-            {isSignUp ? 'Already have an account? Log In' : 'Don\'t have an account? Sign Up'}
+            {isSignUp ? 'Already have an account? Login' : "Don't have an account? Sign Up"}
           </Button>
         </View>
       </ScrollView>
@@ -264,12 +255,6 @@ const styles = StyleSheet.create({
   input: {
     marginBottom: 8,
     backgroundColor: 'transparent',
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 12,
-    marginBottom: 10,
-    marginTop: -5,
   },
   button: {
     marginTop: 20,
