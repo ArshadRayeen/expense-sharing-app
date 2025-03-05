@@ -25,6 +25,7 @@ export default function FriendsScreen() {
       />
 
       <FlatList
+        numColumns={2}
         data={filteredFriends}
         renderItem={({ item }) => <FriendCard friend={item} />}
         keyExtractor={item => item.id}
@@ -40,6 +41,7 @@ export default function FriendsScreen() {
             </Button>
           </View>
         }
+        contentContainerStyle={styles.flatListContent}
       />
 
       <AddFriendModal
@@ -67,5 +69,10 @@ const styles = StyleSheet.create({
   },
   addButton: {
     marginTop: 16,
+  },
+  flatListContent: {
+    padding: 16,
+    alignItems: 'center',
+    
   },
 });

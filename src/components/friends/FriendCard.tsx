@@ -38,8 +38,9 @@ export const FriendCard = ({ friend }: Props) => {
 
 const styles = StyleSheet.create({
   card: {
-    width: 150,
-    marginRight: 16,
+    width: 170,
+    marginHorizontal:5
+    // marginRight: 16,
   },
   content: {
     alignItems: 'center',

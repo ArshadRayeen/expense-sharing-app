@@ -28,7 +28,7 @@ const FriendsScreen = () => {
                 <Text style={styles.name}>{item.name}</Text>
                 <Text style={item.balance > 0 ? styles.owes : styles.owed}>
                   {item.balance > 0 
-                    ? `${item.name} owes you ${item.balance}`
+                    ? `${item.name} owessss you ${item.balance}`
                     : `You owe ${item.name} ${Math.abs(item.balance)}`}
                 </Text>
               </Card.Content>

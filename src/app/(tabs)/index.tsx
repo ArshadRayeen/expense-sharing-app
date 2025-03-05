@@ -51,7 +51,7 @@ export default function ActivityScreen() {
         data={filteredExpenses}
         ListHeaderComponent={() => (
           <>
-            <View style={styles.section}>
+            {/* <View style={styles.section}>
               <Text variant="titleLarge">Your Groups</Text>
               <FlatList
                 horizontal
@@ -73,7 +73,7 @@ export default function ActivityScreen() {
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.horizontalList}
               />
-            </View>
+            </View> */}
 
             <Text variant="titleLarge" style={styles.sectionTitle}>Recent Expenses</Text>
           </>
@@ -147,6 +147,8 @@ const styles = StyleSheet.create({
   },
   horizontalList: {
     paddingTop: 8,
+    alignItems: 'center',
+    padding:10
   },
   fab: {
     position: 'absolute',
