@@ -195,12 +195,12 @@ const GroupDetailScreen = () => {
         />
       </View>
       
-      <FAB
+      {/* <FAB
         style={styles.fab}
         icon="plus"
         onPress={() => setIsAddingExpense(true)}
         disabled={isLoading}
-      />
+      /> */}
       
       {/* Add Member Dialog */}
       <Portal>

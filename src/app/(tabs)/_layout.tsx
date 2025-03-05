@@ -53,7 +53,7 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
-      <FABComponent />
+      {/* <FABComponent /> */}
     </View>
   );
 }

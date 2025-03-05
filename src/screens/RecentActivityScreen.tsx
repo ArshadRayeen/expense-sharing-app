@@ -24,15 +24,7 @@ const RecentActivityScreen = () => {
           <Text>Add an expense to get started</Text>
         </View>
       )}
-      
-      <FAB
-        style={styles.fab}
-        icon="plus"
-        onPress={() => {
-          // Navigate to add expense screen
-          console.log('Add expense');
-        }}
-      />
+
     </View>
   );
 };
@@ -61,13 +53,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
   },
-  fab: {
-    position: 'absolute',
-    margin: 16,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#1E88E5',
-  },
+ 
 });
 
 export default RecentActivityScreen; 

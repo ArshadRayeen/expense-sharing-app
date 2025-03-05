@@ -74,12 +74,12 @@ class Database {
       this.db.transaction(
         (tx) => {
           // Drop existing tables to ensure clean state
-          tx.executeSql('DROP TABLE IF EXISTS expense_splits');
-          tx.executeSql('DROP TABLE IF EXISTS expenses');
-          tx.executeSql('DROP TABLE IF EXISTS friendships');
-          tx.executeSql('DROP TABLE IF EXISTS group_members');
-          tx.executeSql('DROP TABLE IF EXISTS groups');
-          tx.executeSql('DROP TABLE IF EXISTS users');
+          // tx.executeSql('DROP TABLE IF EXISTS expense_splits');
+          // tx.executeSql('DROP TABLE IF EXISTS expenses');
+          // tx.executeSql('DROP TABLE IF EXISTS friendships');
+          // tx.executeSql('DROP TABLE IF EXISTS group_members');
+          // tx.executeSql('DROP TABLE IF EXISTS groups');
+          // tx.executeSql('DROP TABLE IF EXISTS users');
 
           // Create tables in order
           console.log('Creating users table...');

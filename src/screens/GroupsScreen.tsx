@@ -20,11 +20,11 @@ export const GroupsScreen = () => {
   return (
     <View style={styles.container}>
       {/* Your groups list here */}
-      <FAB
+      {/* <FAB
         style={styles.fab}
         icon="plus"
         onPress={() => setShowCreateGroup(true)}
-      />
+      /> */}
       <CreateGroupModal
         visible={showCreateGroup}
         onDismiss={() => setShowCreateGroup(false)}
