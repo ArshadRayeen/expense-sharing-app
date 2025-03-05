@@ -1,31 +1,35 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
 import { Text } from 'react-native-paper';
-import { router } from 'expo-router';
+import { router, useRootNavigationState } from 'expo-router';
 import { useAppSelector } from '../../redux/hooks';
 
 export default function WelcomeScreen() {
   const fadeAnim = new Animated.Value(0);
-  const user = useAppSelector(state => state.auth.user);
+  const { user } = useAppSelector(state => state.auth);
+  const navigationState = useRootNavigationState();
 
   useEffect(() => {
+    if (!navigationState?.key) return;
+
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 1000,
       useNativeDriver: true,
     }).start();
 
-    // Auto navigate after 2 seconds
     const timer = setTimeout(() => {
       if (user) {
         router.replace('/(tabs)');
       } else {
         router.replace('/(auth)/landing');
       }
-    }, 2000);
+    }, 1000);
 
     return () => clearTimeout(timer);
-  }, [user]);
+  }, [user, navigationState?.key]);
+
+  if (!navigationState?.key) return null;
 
   return (
     <View style={styles.container}>

@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import { initDb } from './services/db';
 import { LoadingScreen } from './components/common/LoadingScreen';
 import { Provider } from 'react-redux';
-import { store } from './redux/store';
+import { PersistGate } from 'redux-persist/integration/react';
+import { store, persistor } from './redux/store';
 import { PaperProvider } from 'react-native-paper';
 import { Stack } from 'expo-router';
 import { View, Text } from 'react-native';
 
-export default function App() {
+function AppContent() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,13 +39,17 @@ export default function App() {
     );
   }
 
+  return <Stack />;
+}
+
+export default function App() {
   return (
     <Provider store={store}>
-      <PaperProvider>
-        <Stack>
-          {/* Your app routes */}
-        </Stack>
-      </PaperProvider>
+      <PersistGate loading={<LoadingScreen />} persistor={persistor}>
+        <PaperProvider>
+          <AppContent />
+        </PaperProvider>
+      </PersistGate>
     </Provider>
   );
 } 

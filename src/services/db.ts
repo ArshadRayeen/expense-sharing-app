@@ -37,15 +37,14 @@ interface SQLResultSet {
 }
 
 class Database {
-  private db: WebSQLDatabase;
+  private db: SQLite.SQLiteDatabase;
   private initialized: boolean = false;
 
   constructor() {
     if (Platform.OS === 'web') {
-      // Handle web platform differently if needed
       throw new Error('Web platform is not supported');
     }
-    this.db = SQLite.openDatabase('expense_sharing.db') as unknown as WebSQLDatabase;
+    this.db = SQLite.openDatabase('expense_sharing.db');
   }
 
   private async ensureInitialized() {
