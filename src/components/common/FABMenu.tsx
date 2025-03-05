@@ -61,7 +61,7 @@ export const FABMenu = () => {
 const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
-    bottom: 65,
+    bottom: 105,
     alignSelf: 'center',
   },
 }); 

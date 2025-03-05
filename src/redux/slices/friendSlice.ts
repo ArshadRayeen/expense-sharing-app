@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Friend, User, ExpenseSplit, Expense, AddFriendPayload } from '../../types';
 import { db, userOperations, expenseOperations } from '../../services/db';
 
@@ -133,7 +133,11 @@ const initialState: FriendState = {
 const friendSlice = createSlice({
   name: 'friends',
   initialState,
-  reducers: {},
+  reducers: {
+    setFriends: (state, action: PayloadAction<Friend[]>) => {
+      state.friends = action.payload;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(addFriend.pending, (state) => {
@@ -154,4 +158,5 @@ const friendSlice = createSlice({
   },
 });
 
+export const { setFriends } = friendSlice.actions;
 export default friendSlice.reducer; 

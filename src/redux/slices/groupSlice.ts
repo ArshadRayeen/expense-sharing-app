@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Group } from '../../types';
 import { db } from '../../services/db';
 
@@ -33,7 +33,11 @@ const initialState: GroupState = {
 const groupSlice = createSlice({
   name: 'groups',
   initialState,
-  reducers: {},
+  reducers: {
+    setGroups: (state, action: PayloadAction<Group[]>) => {
+      state.groups = action.payload;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(createGroup.pending, (state) => {
@@ -53,4 +57,5 @@ const groupSlice = createSlice({
   },
 });
 
+export const { setGroups } = groupSlice.actions;
 export default groupSlice.reducer; 

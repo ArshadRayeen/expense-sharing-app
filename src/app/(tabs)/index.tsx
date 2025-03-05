@@ -150,9 +150,9 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    margin: 16,
+    margin: 0,
     right: 0,
-    bottom: 0,
+    bottom: 60,
   },
   searchBar: {
     margin: 16,

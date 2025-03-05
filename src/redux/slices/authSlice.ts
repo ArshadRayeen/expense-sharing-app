@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { User } from '../../types';
 import { userOperations } from '../../services/db';
 import { hashPassword, comparePasswords } from '../../utils/crypto';
+import { loadUserData } from './userDataSlice';
 
 interface AuthState {
   user: User | null;
@@ -36,7 +37,7 @@ export const registerUser = createAsyncThunk(
 
 export const loginUser = createAsyncThunk(
   'auth/login',
-  async ({ email, password }: { email: string; password: string }, { rejectWithValue }) => {
+  async ({ email, password }: { email: string; password: string }, { dispatch, rejectWithValue }) => {
     try {
       const user = await userOperations.getUserByEmail(email);
       if (!user) {
@@ -47,6 +48,9 @@ export const loginUser = createAsyncThunk(
       if (!isValidPassword) {
         throw new Error('Invalid password');
       }
+
+      // Load user data after successful login
+      await dispatch(loadUserData(user.id));
 
       return user;
     } catch (error) {

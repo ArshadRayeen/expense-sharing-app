@@ -44,6 +44,7 @@ export const addExpense = createAsyncThunk(
       const newExpense = await expenseOperations.createExpense(expense);
       return newExpense;
     } catch (error) {
+      console.log(error);
       return rejectWithValue(error instanceof Error ? error.message : 'Failed to add expense');
     }
   }

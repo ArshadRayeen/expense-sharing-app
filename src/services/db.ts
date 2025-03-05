@@ -241,21 +241,17 @@ class Database {
   }
 
   async getGroupsByUserId(userId: string): Promise<Group[]> {
+    await this.ensureInitialized();
     return new Promise((resolve, reject) => {
-      this.db.transaction((tx: SQLTransaction) => {
+      this.db.transaction((tx) => {
         tx.executeSql(
-          `SELECT g.*, GROUP_CONCAT(gm.user_id) as members
+          `SELECT g.* 
            FROM groups g
-           LEFT JOIN group_members gm ON g.id = gm.group_id
-           WHERE g.created_by = ? OR gm.user_id = ?
-           GROUP BY g.id`,
-          [userId, userId],
+           INNER JOIN group_members gm ON g.id = gm.group_id
+           WHERE gm.user_id = ?`,
+          [userId],
           (_, { rows }) => {
-            const groups = rows._array.map(row => ({
-              ...row,
-              members: row.members ? row.members.split(',') : []
-            }));
-            resolve(groups);
+            resolve(rows._array);
           },
           (_, error) => {
             reject(error);
@@ -268,15 +264,17 @@ class Database {
 
   // Friend operations
   async getFriendsByUserId(userId: string): Promise<User[]> {
+    await this.ensureInitialized();
     return new Promise((resolve, reject) => {
-      this.db.transaction((tx: SQLTransaction) => {
+      this.db.transaction((tx) => {
         tx.executeSql(
-          `SELECT DISTINCT u.* 
+          `SELECT u.* 
            FROM users u
-           INNER JOIN group_members gm1 ON u.id = gm1.user_id
-           INNER JOIN group_members gm2 ON gm1.group_id = gm2.group_id
-           WHERE gm2.user_id = ? AND u.id != ?`,
-          [userId, userId],
+           INNER JOIN friendships f 
+           ON (f.user_id1 = u.id OR f.user_id2 = u.id)
+           WHERE (f.user_id1 = ? OR f.user_id2 = ?)
+           AND u.id != ?`,
+          [userId, userId, userId],
           (_, { rows }) => {
             resolve(rows._array);
           },
