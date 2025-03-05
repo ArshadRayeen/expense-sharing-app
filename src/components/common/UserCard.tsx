@@ -22,7 +22,7 @@ const UserCard = ({ userId, name, amount, isOwed, onPress }: UserCardProps) => {
         <Text style={styles.name}>{displayName}</Text>
         <Text style={isOwed ? styles.owed : styles.owes}>
           {isOwed 
-            ? `Owes yousss ${formatCurrency(amount)}`
+            ? `Owes you ${formatCurrency(amount)}`
             : `You owe ${formatCurrency(amount)}`}
         </Text>
       </Card.Content>
