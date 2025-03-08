@@ -56,6 +56,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+    padding: 16,
+    justifyContent: 'center',
   },
   searchBar: {
     margin: 16,
@@ -71,8 +73,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   flatListContent: {
-    padding: 16,
-    alignItems: 'center',
-    
+    padding: 12,
+    // alignItems: 'center',
   },
 });
