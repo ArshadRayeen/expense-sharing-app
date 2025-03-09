@@ -140,14 +140,12 @@ const GroupDetailScreen = () => {
   
   return (
     <View style={styles.container}>
-      <Card style={styles.groupCard}>
-        <Card.Content>
-          <Text style={styles.groupName}>{group.name}</Text>
-          <Text style={styles.memberCount}>
-            {groupMembers.length} member{groupMembers.length !== 1 ? 's' : ''}
-          </Text>
-        </Card.Content>
-      </Card>
+      <Text variant="headlineMedium">{group.name}</Text>
+      <Text variant="bodyMedium">Created on: {new Date(group.created_at).toLocaleDateString()}</Text>
+      <Text variant="bodyMedium">{group.members.length} members</Text>
+      <Button mode="contained" onPress={() => console.log('Edit Group')}>
+        Edit Group
+      </Button>
       
       <View style={styles.membersSection}>
         <View style={styles.sectionHeader}>
@@ -334,7 +332,8 @@ const GroupDetailScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    padding: 20,
+    backgroundColor: '#fff',
   },
   errorContainer: {
     flex: 1,
@@ -346,19 +345,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: 'red',
     marginBottom: 20,
-  },
-  groupCard: {
-    margin: 16,
-    elevation: 4,
-  },
-  groupName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  memberCount: {
-    fontSize: 14,
-    color: '#757575',
-    marginTop: 5,
   },
   membersSection: {
     margin: 16,
@@ -386,13 +372,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#757575',
     marginTop: 20,
-  },
-  fab: {
-    position: 'absolute',
-    margin: 16,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#1E88E5',
   },
   modalContainer: {
     backgroundColor: 'white',

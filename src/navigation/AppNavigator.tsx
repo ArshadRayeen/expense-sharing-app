@@ -10,7 +10,6 @@ import WelcomeScreen from '../screens/WelcomeScreen';
 import LandingScreen from '../screens/LandingScreen';
 import RecentActivityScreen from '../screens/RecentActivityScreen';
 import FriendsScreen from '../screens/FriendsScreen';
-import GroupScreen from '../screens/GroupScreen';
 import GroupDetailScreen from '../screens/GroupDetailScreen';
 import AccountScreen from '../screens/AccountScreen';
 import SettlementScreen from '../screens/SettlementScreen';
@@ -66,10 +65,6 @@ const BottomTabNavigator = () => {
       <Tab.Screen 
         name="Friends" 
         component={FriendsScreen} 
-      />
-      <Tab.Screen 
-        name="Groups" 
-        component={GroupScreen} 
       />
       <Tab.Screen 
         name="Account" 
