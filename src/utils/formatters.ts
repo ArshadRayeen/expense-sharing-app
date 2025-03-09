@@ -6,19 +6,7 @@ export const formatCurrency = (amount: number): string => {
   }).format(amount);
 };
 
-export const formatDate = (date: string | number): string => {
-  try {
-    const dateObj = typeof date === 'string' ? new Date(date) : new Date(Number(date));
-    if (isNaN(dateObj.getTime())) {
-      return 'Invalid date';
-    }
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    }).format(dateObj);
-  } catch (error) {
-    console.error('Date formatting error:', error);
-    return 'Invalid date';
-  }
+export const formatDate = (timestamp: number): string => {
+  const date = new Date(timestamp);
+  return date.toLocaleDateString(); // Format as needed
 }; 
