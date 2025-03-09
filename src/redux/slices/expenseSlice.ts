@@ -30,6 +30,7 @@ interface AddExpensePayload {
   payer_id: string;
   split_type: 'EQUAL' | 'EXACT' | 'PERCENT';
   participants: ExpenseSplit[];
+  group_id: string;
 }
 
 // Async thunks
@@ -44,7 +45,8 @@ export const addExpense = createAsyncThunk(
       const newExpense = await expenseOperations.createExpense(expense);
       return newExpense;
     } catch (error) {
-      console.log(error);
+      console.log('addExpense error',error);
+      console.log('addExpense payload',payload);
       return rejectWithValue(error instanceof Error ? error.message : 'Failed to add expense');
     }
   }

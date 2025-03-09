@@ -51,8 +51,17 @@ const groupSlice = createSlice({
         state.isLoading = false;
         state.error = action.error.message || 'Failed to create group';
       })
+      .addCase(fetchGroups.pending, (state) => {
+        state.isLoading = true;
+      })
       .addCase(fetchGroups.fulfilled, (state, action) => {
+        state.isLoading = false;
         state.groups = action.payload;
+        console.log('Fetched groups:', action.payload);
+      })
+      .addCase(fetchGroups.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message || 'Failed to fetch groups';
       });
   },
 });

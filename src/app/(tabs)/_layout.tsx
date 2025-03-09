@@ -31,13 +31,13 @@ export default function TabLayout() {
             tabBarIcon: ({ color }) => <Icon name="account-multiple" size={24} color={color} />,
           }}
         />
-        <Tabs.Screen
+        {/* <Tabs.Screen
           name="placeholder"
           options={{
             title: '',
             tabBarButton: () => <View style={{ width: 60 }} />,
           }}
-        />
+        /> */}
         <Tabs.Screen
           name="groups"
           options={{

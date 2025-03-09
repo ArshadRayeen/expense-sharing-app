@@ -27,7 +27,7 @@ export const GroupCard = ({ group }: Props) => {
           {group.name}
         </Text>
         <Text variant="bodySmall" style={styles.memberCount}>
-          {group.members.length} members
+          {group?.members?.length} members
         </Text>
       </Card.Content>
     </Card>

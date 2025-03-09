@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import GroupScreen from '../../screens/GroupScreen';
+import GroupScreen from '../../screens/GroupsScreen';
 
 export default function GroupsTab() {
   return (

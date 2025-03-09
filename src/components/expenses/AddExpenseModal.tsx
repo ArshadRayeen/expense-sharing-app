@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { Modal, Portal, TextInput, Button, Text, RadioButton, Checkbox, HelperText } from 'react-native-paper';
+import { Modal, Portal, TextInput, Button, Text, RadioButton, Checkbox, HelperText, Menu, Provider } from 'react-native-paper';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { addExpense } from '../../redux/slices/expenseSlice';
+import { fetchGroups } from '../../redux/slices/groupSlice';
 
 type SplitType = 'EQUAL' | 'EXACT' | 'PERCENT';
 
@@ -18,16 +19,21 @@ export const AddExpenseModal = ({ visible, onDismiss }: Props) => {
   const [selectedParticipants, setSelectedParticipants] = useState<Set<string>>(new Set());
   const [customSplits, setCustomSplits] = useState<Record<string, string>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [selectedGroupId, setSelectedGroupId] = useState<string>('');
+  const [groupMenuVisible, setGroupMenuVisible] = useState(false);
 
   const dispatch = useAppDispatch();
   const { user } = useAppSelector(state => state.auth);
   const { friends } = useAppSelector(state => state.friends);
+  const { groups } = useAppSelector(state => state.groups);
+  const { isLoading } = useAppSelector(state => state.expenses);
 
   useEffect(() => {
     if (user) {
+      dispatch(fetchGroups(user.id));
       setSelectedParticipants(new Set([user.id]));
     }
-  }, [user]);
+  }, [dispatch, user]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -68,36 +74,35 @@ export const AddExpenseModal = ({ visible, onDismiss }: Props) => {
   };
 
   const handleSubmit = async () => {
-    if (!validateForm() || !user) return;
+    if (!user) return;
+
+    if (!description.trim()) {
+      setErrors({ description: 'Please enter a description' });
+      return;
+    }
+
+    if (selectedParticipants.size < 2) {
+      setErrors({ participants: 'Please select at least one participant' });
+      return;
+    }
 
     try {
-      const splits = Array.from(selectedParticipants).map(participantId => {
-        let splitAmount = 0;
-        if (splitType === 'EQUAL') {
-          splitAmount = parseFloat(amount) / selectedParticipants.size;
-        } else if (splitType === 'EXACT') {
-          splitAmount = parseFloat(customSplits[participantId] || '0');
-        } else if (splitType === 'PERCENT') {
-          const percentage = parseFloat(customSplits[participantId] || '0');
-          splitAmount = (parseFloat(amount) * percentage) / 100;
-        }
-        return {
-          user_id: participantId,
-          amount: splitAmount,
-        };
-      });
-
-      await dispatch(addExpense({
-        amount: parseFloat(amount),
+      const payload: AddExpensePayload = {
+        amount,
         description,
         payer_id: user.id,
-        split_type: splitType,
-        participants: splits,
-      })).unwrap();
+        split_type: 'EQUAL',
+        participants: Array.from(selectedParticipants).map(participantId => ({
+          user_id: participantId,
+          amount: parseFloat(customSplits[participantId] || '0'),
+        })),
+        group_id: selectedGroupId,
+      };
 
+      await dispatch(addExpense(payload)).unwrap();
       onDismiss();
-    } catch (error) {
-      setErrors({ submit: error instanceof Error ? error.message : 'Failed to add expense' });
+    } catch (err) {
+      setErrors({ submit: err instanceof Error ? err.message : 'Failed to add expense' });
     }
   };
 
@@ -177,11 +182,26 @@ export const AddExpenseModal = ({ visible, onDismiss }: Props) => {
             </View>
           )}
 
+          <Provider>
+            <Menu
+              visible={groupMenuVisible}
+              onDismiss={() => setGroupMenuVisible(false)}
+              anchor={<Button onPress={() => setGroupMenuVisible(true)}>{selectedGroupId ? selectedGroupId : 'Select Group'}</Button>}
+            >
+              {groups.map(group => (
+                <Menu.Item key={group.id} onPress={() => {
+                  setSelectedGroupId(group.id);
+                  setGroupMenuVisible(false);
+                }} title={group.name} />
+              ))}
+            </Menu>
+          </Provider>
+
           {errors.submit && <HelperText type="error">{errors.submit}</HelperText>}
 
           <View style={styles.buttonContainer}>
-            <Button onPress={onDismiss} style={styles.button}>Cancel</Button>
-            <Button mode="contained" onPress={handleSubmit} style={styles.button}>Add</Button>
+            <Button onPress={onDismiss} style={styles.button} disabled={isLoading}>Cancel</Button>
+            <Button mode="contained" onPress={handleSubmit} style={styles.button} loading={isLoading} disabled={isLoading}>Add</Button>
           </View>
         </ScrollView>
       </Modal>
